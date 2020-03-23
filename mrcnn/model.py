@@ -31,7 +31,9 @@ assert LooseVersion(tf.__version__) >= LooseVersion("2.0")
 
 # Disables eager execution.
 tf.compat.v1.disable_eager_execution()
-
+# fix allocate GPU memory
+physical_devices = tf.config.experimental.list_physical_devices("GPU")
+tf.config.experimental.set_memory_growth(physical_devices[0], True)
 ############################################################
 #  Utility Functions
 ############################################################
@@ -2348,7 +2350,7 @@ class MaskRCNN(object):
             workers = 0
         else:
             workers = multiprocessing.cpu_count()
-
+        self.keras_model.summary()
         self.keras_model.fit(
             train_generator,
             initial_epoch=self.epoch,
@@ -2358,8 +2360,10 @@ class MaskRCNN(object):
             validation_data=val_generator,
             validation_steps=self.config.VALIDATION_STEPS,
             max_queue_size=100,
-            workers=workers,
-            use_multiprocessing=workers > 1,
+            workers=1,
+            # workers=workers,
+            use_multiprocessing=False,
+            # use_multiprocessing=workers > 1,
         )
         self.epoch = max(self.epoch, epochs)
 
